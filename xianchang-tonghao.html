@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>现场同好 — 找到你的同频人</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d0d;
+  --paper: #f5f0e8;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --gold: #c9a84c;
+  --muted: #7a7065;
+  --light: #e8e3d8;
+  --white: #fdfaf4;
+  --groove: #1a1a2e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans SC', sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ─────────────────────────────────────────────── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--red);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.08s ease, width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: multiply;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.18s ease;
+}
+body:has(a:hover) .cursor,
+body:has(button:hover) .cursor { width: 22px; height: 22px; background: var(--gold); }
+
+/* ── NOISE OVERLAY ─────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ── NAV ───────────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: transparent;
+  transition: background 0.4s, backdrop-filter 0.4s;
+  mix-blend-mode: normal;
+}
+nav.scrolled {
+  background: rgba(245, 240, 232, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--light);
+}
+.nav-logo {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-logo span {
+  color: var(--red);
+  font-size: 22px;
+}
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: 'Space Mono', monospace;
+  transition: color 0.2s;
+  cursor: none;
+}
+.nav-links a:hover { color: var(--red); }
+.nav-cta {
+  background: var(--ink);
+  color: var(--paper) !important;
+  padding: 8px 20px;
+  border: none;
+  font-size: 12px !important;
+  transition: background 0.2s, color 0.2s !important;
+  cursor: none;
+}
+.nav-cta:hover { background: var(--red) !important; color: #fff !important; }
+
+/* ── HERO ──────────────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  overflow: hidden;
+}
+.hero-left {
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 140px 48px 80px;
+  position: relative; z-index: 2;
+}
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(52px, 7vw, 96px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+.hero-title .accent { color: var(--red); }
+.hero-title .thin { font-weight: 400; font-style: italic; }
+.hero-sub {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--muted);
+  max-width: 440px;
+  margin-bottom: 52px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+.hero-actions {
+  display: flex; gap: 16px; align-items: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 16px 36px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: none;
+  transition: background 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--gold);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.btn-primary:hover::after { transform: scaleX(1); }
+.btn-primary span { position: relative; z-index: 1; }
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  padding: 15px 28px;
+  font-size: 13px;
+  font-family: 'Space Mono', monospace;
+  cursor: none;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--ink); color: var(--paper); }
+.hero-stats {
+  display: flex; gap: 40px; margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--light);
+  opacity: 0;
+  animation: fadeUp 0.8s 1.0s forwards;
+}
+.stat-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  display: block;
+}
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: block;
+  margin-top: 4px;
+}
+
+/* ── HERO RIGHT ─────────────────────────────────────────────────── */
+.hero-right {
+  position: relative;
+  background: var(--groove);
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeIn 1.2s 0.3s forwards;
+}
+.hero-right::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 60%, rgba(192,57,43,0.3) 0%, transparent 65%),
+              radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.15) 0%, transparent 50%);
+}
+.vinyl-container {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 380px; height: 380px;
+}
+.vinyl {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    #1a1a1a 0%, #1a1a1a 12%,
+    #0d0d0d 12.5%, #0d0d0d 15%,
+    #1c1c1c 15.5%, #2a2a2a 20%,
+    #1a1a1a 20.5%, #2c2c2c 30%,
+    #1a1a1a 30.5%, #2c2c2c 45%,
+    #1a1a1a 45.5%, #2c2c2c 60%,
+    #1a1a1a 60.5%, #2c2c2c 75%,
+    #1a1a1a 75.5%, #2c2c2c 90%,
+    #1a1a1a 90.5%
+  );
+  box-shadow: 0 0 80px rgba(0,0,0,0.8), inset 0 0 30px rgba(255,255,255,0.03);
+  animation: spin 8s linear infinite;
+  position: relative;
+}
+.vinyl-label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red) 0%, #8b0000 100%);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  animation: spin 8s linear infinite reverse;
+}
+.vinyl-label-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 1.5;
+}
+.vinyl-center-dot {
+  width: 10px; height: 10px;
+  background: var(--paper);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+.floating-cards {
+  position: absolute; inset: 0;
+}
+.fcard {
+  position: absolute;
+  background: rgba(245,240,232,0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 14px 18px;
+  border-radius: 2px;
+}
+.fcard-1 { top: 15%; left: 6%; animation: float1 6s ease-in-out infinite; }
+.fcard-2 { bottom: 18%; right: 8%; animation: float2 7s ease-in-out infinite 1s; }
+.fcard-3 { top: 60%; left: 8%; animation: float1 5.5s ease-in-out infinite 2s; }
+.fcard-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+.fcard-match {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.fcard-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.ftag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border: 1px solid rgba(192,57,43,0.4);
+  color: rgba(192,57,43,0.8);
+  letter-spacing: 0.06em;
+}
+.waveform {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 3px;
+  padding: 0 20px 16px;
+  opacity: 0.4;
+}
+.wave-bar {
+  width: 3px;
+  background: var(--red);
+  border-radius: 2px;
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+/* ── TICKER ─────────────────────────────────────────────────────── */
+.ticker {
+  background: var(--red);
+  color: #fff;
+  padding: 12px 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+.ticker-inner {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+}
+.ticker-item {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0 40px;
+  opacity: 0.9;
+}
+.ticker-dot { color: var(--gold); margin: 0 12px; }
+
+/* ── SECTION COMMONS ────────────────────────────────────────────── */
+section { position: relative; z-index: 1; }
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* ── HOW IT WORKS ───────────────────────────────────────────────── */
+.how {
+  padding: 120px 48px;
+  background: var(--white);
+}
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 80px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.how-header { position: sticky; top: 140px; }
+.how-header .section-title { margin-bottom: 24px; }
+.how-header p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--muted);
+  max-width: 340px;
+}
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 28px;
+  padding: 40px 0;
+  border-bottom: 1px solid var(--light);
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+.step.visible { opacity: 1; transform: none; }
+.step:last-child { border-bottom: none; }
+.step-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--red);
+  padding-top: 6px;
+  border-top: 2px solid var(--red);
+}
+.step h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+.step p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.step-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* ── MATCH DEMO ─────────────────────────────────────────────────── */
+.match-demo {
+  padding: 120px 48px;
+  background: var(--groove);
+  color: var(--paper);
+  overflow: hidden;
+}
+.match-demo-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.match-demo .section-label { color: rgba(245,240,232,0.4); }
+.match-demo .section-title { color: var(--paper); margin-bottom: 16px; }
+.match-demo .section-title .accent { color: var(--red-bright); }
+.match-sub {
+  color: rgba(245,240,232,0.5);
+  font-size: 15px;
+  margin-bottom: 64px;
+  max-width: 500px;
+}
+.profiles-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 40px;
+}
+.profile-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 32px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+.profile-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(192,57,43,0.3);
+}
+.profile-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px;
+}
+.avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.avatar-a { background: linear-gradient(135deg, #c0392b, #8b0000); }
+.avatar-b { background: linear-gradient(135deg, #c9a84c, #8b6914); }
+.profile-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--paper);
+}
+.profile-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(245,240,232,0.4);
+  letter-spacing: 0.1em;
+  margin-top: 3px;
+}
+.profile-section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(245,240,232,0.3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.tag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid rgba(245,240,232,0.15);
+  color: rgba(245,240,232,0.7);
+  letter-spacing: 0.05em;
+}
+.tag.shared {
+  border-color: rgba(192,57,43,0.5);
+  color: #e57368;
+  background: rgba(192,57,43,0.1);
+}
+.show-list { display: flex; flex-direction: column; gap: 8px; }
+.show-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-left: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+.show-item.shared { border-left-color: var(--red); }
+.show-name { font-size: 12px; color: rgba(245,240,232,0.8); }
+.show-venue {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(245,240,232,0.3);
+}
+.match-center {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.match-ring {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--red-bright));
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(192,57,43,0.4);
+  animation: pulse 3s ease-in-out infinite;
+}
+.match-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+}
+.match-label-sm {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.7);
+  display: block;
+}
+.match-reasons {
+  display: flex; flex-direction: column; gap: 6px; width: 100%;
+}
+.reason {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  color: rgba(245,240,232,0.5);
+}
+.reason::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--red);
+  flex-shrink: 0;
+}
+
+/* ── FEATURES ───────────────────────────────────────────────────── */
+.features {
+  padding: 120px 48px;
+  background: var(--paper);
+}
+.features-inner { max-width: 1200px; margin: 0 auto; }
+.features-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  margin-bottom: 80px;
+}
+.features-header p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--muted);
+  max-width: 380px;
+  text-align: right;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--light);
+}
+.feature-card {
+  background: var(--white);
+  padding: 48px 36px;
+  transition: background 0.3s;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s, transform 0.5s, background 0.3s;
+}
+.feature-card.visible { opacity: 1; transform: none; }
+.feature-card:hover { background: var(--groove); }
+.feature-card:hover .feature-title { color: var(--paper); }
+.feature-card:hover .feature-desc { color: rgba(245,240,232,0.5); }
+.feature-card:hover .feature-icon { color: var(--red-bright); }
+.feature-icon {
+  font-size: 32px;
+  margin-bottom: 24px;
+  display: block;
+  color: var(--red);
+  transition: color 0.3s;
+}
+.feature-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--ink);
+  transition: color 0.3s;
+}
+.feature-desc {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--muted);
+  transition: color 0.3s;
+}
+
+/* ── COMMUNITY / EVENTS ─────────────────────────────────────────── */
+.events {
+  padding: 120px 48px;
+  background: var(--white);
+  overflow: hidden;
+}
+.events-inner { max-width: 1200px; margin: 0 auto; }
+.events-header { margin-bottom: 64px; }
+.events-header .section-title { margin-bottom: 16px; }
+.events-header p { font-size: 15px; color: var(--muted); }
+.events-scroll {
+  display: flex; gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.events-scroll::-webkit-scrollbar { display: none; }
+.event-card {
+  flex-shrink: 0;
+  width: 300px;
+  border: 1px solid var(--light);
+  overflow: hidden;
+  transition: transform 0.3s, border-color 0.3s;
+}
+.event-card:hover { transform: translateY(-4px); border-color: var(--red); }
+.event-img {
+  width: 100%; height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.event-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5));
+}
+.ei-1 { background: linear-gradient(135deg, #1a1a2e, #c0392b20); }
+.ei-2 { background: linear-gradient(135deg, #0d2137, #c9a84c20); }
+.ei-3 { background: linear-gradient(135deg, #1a0d0d, #c0392b30); }
+.ei-4 { background: linear-gradient(135deg, #0d1a0d, #c9a84c20); }
+.ei-5 { background: linear-gradient(135deg, #1a1a0d, #c0392b20); }
+.event-body { padding: 20px 22px; }
+.event-date {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.event-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.event-venue {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.event-footer {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.event-going {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.event-join {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--red);
+  text-decoration: none;
+  border-bottom: 1px solid var(--red);
+  padding-bottom: 1px;
+  transition: color 0.2s;
+  cursor: none;
+}
+.event-join:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ── TESTIMONIALS ───────────────────────────────────────────────── */
+.testimonials {
+  padding: 120px 48px;
+  background: var(--groove);
+  color: var(--paper);
+}
+.testimonials-inner { max-width: 1200px; margin: 0 auto; }
+.testimonials .section-label { color: rgba(245,240,232,0.35); }
+.testimonials .section-title { color: var(--paper); margin-bottom: 64px; }
+.testimonials .section-title .accent { color: var(--gold); }
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.testi-card {
+  padding: 32px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.testi-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-4px); }
+.testi-quote {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  line-height: 1.8;
+  color: rgba(245,240,232,0.8);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+.testi-quote::before { content: '"'; color: var(--red); font-size: 28px; line-height: 0; vertical-align: -12px; margin-right: 4px; }
+.testi-author {
+  display: flex; align-items: center; gap: 12px;
+}
+.testi-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.ta-1 { background: linear-gradient(135deg, #c0392b50, #8b000050); border: 1px solid rgba(192,57,43,0.3); }
+.ta-2 { background: linear-gradient(135deg, #c9a84c40, #8b691440); border: 1px solid rgba(201,168,76,0.3); }
+.ta-3 { background: linear-gradient(135deg, #1c4a6e50, #0d2a4050); border: 1px solid rgba(28,74,110,0.3); }
+.testi-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--paper);
+}
+.testi-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(245,240,232,0.35);
+  letter-spacing: 0.1em;
+  margin-top: 3px;
+}
+
+/* ── PRICING ────────────────────────────────────────────────────── */
+.pricing {
+  padding: 120px 48px;
+  background: var(--paper);
+}
+.pricing-inner { max-width: 960px; margin: 0 auto; text-align: center; }
+.pricing-inner .section-label { display: inline-block; margin-bottom: 16px; }
+.pricing-inner .section-title { margin-bottom: 16px; }
+.pricing-sub { font-size: 15px; color: var(--muted); margin-bottom: 64px; }
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--light);
+  overflow: hidden;
+}
+.price-card {
+  padding: 48px 36px;
+  border-right: 1px solid var(--light);
+  text-align: left;
+  position: relative;
+  transition: background 0.3s;
+}
+.price-card:last-child { border-right: none; }
+.price-card.featured {
+  background: var(--groove);
+  border: none;
+}
+.price-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--red);
+  color: #fff;
+  padding: 4px 10px;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+.price-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.price-card.featured .price-name { color: var(--paper); }
+.price-amount {
+  font-family: 'Space Mono', monospace;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.price-card.featured .price-amount { color: var(--paper); }
+.price-period {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.price-card.featured .price-period { color: rgba(245,240,232,0.4); }
+.price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 36px; }
+.price-features li {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex; align-items: flex-start; gap: 10px;
+  line-height: 1.5;
+}
+.price-card.featured .price-features li { color: rgba(245,240,232,0.6); }
+.price-features li::before {
+  content: '—';
+  color: var(--red);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.price-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  cursor: none;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+}
+.price-btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--light);
+  color: var(--ink);
+}
+.price-btn-ghost:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.price-btn-solid {
+  background: var(--red);
+  color: #fff;
+}
+.price-btn-solid:hover { background: var(--red-bright); }
+
+/* ── CTA BANNER ─────────────────────────────────────────────────── */
+.cta-banner {
+  padding: 100px 48px;
+  background: var(--red);
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+.cta-banner::before {
+  content: '🎸';
+  position: absolute;
+  font-size: 300px;
+  opacity: 0.06;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.cta-banner h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  position: relative;
+}
+.cta-banner p {
+  font-size: 16px;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 48px;
+  position: relative;
+}
+.cta-banner .btn-white {
+  background: #fff;
+  color: var(--red);
+  border: none;
+  padding: 18px 48px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.cta-banner .btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────────── */
+footer {
+  background: var(--ink);
+  color: rgba(245,240,232,0.4);
+  padding: 64px 48px 40px;
+}
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 32px;
+}
+.footer-brand .nav-logo {
+  color: var(--paper);
+  margin-bottom: 16px;
+  display: block;
+}
+.footer-brand p {
+  font-size: 13px;
+  line-height: 1.8;
+  max-width: 260px;
+}
+.footer-col h4 {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(245,240,232,0.6);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.footer-col a {
+  display: block;
+  font-size: 13px;
+  color: rgba(245,240,232,0.35);
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.2s;
+  cursor: none;
+}
+.footer-col a:hover { color: var(--paper); }
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.footer-bottom span { color: var(--red); }
+
+/* ── REGISTRATION MODAL ─────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(13,13,13,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.active { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--white);
+  width: 520px;
+  max-width: 90vw;
+  padding: 56px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+.modal-overlay.active .modal { transform: none; }
+.modal-close {
+  position: absolute; top: 20px; right: 20px;
+  background: none; border: none;
+  font-size: 20px; cursor: none; color: var(--muted);
+  transition: color 0.2s;
+}
+.modal-close:hover { color: var(--red); }
+.modal-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 32px;
+  color: var(--ink);
+}
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--light);
+  padding: 12px 16px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: none;
+  appearance: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--red); }
+.form-genres {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+}
+.genre-chip {
+  font-size: 11px;
+  padding: 6px 14px;
+  border: 1px solid var(--light);
+  color: var(--muted);
+  cursor: none;
+  transition: all 0.2s;
+  background: transparent;
+}
+.genre-chip.active {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(192,57,43,0.05);
+}
+.form-submit {
+  width: 100%; margin-top: 28px;
+  background: var(--red); color: #fff; border: none;
+  padding: 16px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: none;
+  transition: background 0.2s;
+}
+.form-submit:hover { background: var(--red-bright); }
+.modal-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes float1 {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-14px) rotate(1deg); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translateY(0px) rotate(1deg); }
+  50% { transform: translateY(-10px) rotate(-0.5deg); }
+}
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 60px rgba(192,57,43,0.4); }
+  50% { box-shadow: 0 0 100px rgba(192,57,43,0.7); }
+}
+@keyframes countUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-left { padding: 100px 20px 48px; }
+  .hero-right { height: 50vh; }
+  .vinyl-container { width: 260px; height: 260px; }
+  .how-grid, .profiles-container { grid-template-columns: 1fr; }
+  .match-center { flex-direction: row; }
+  .features-grid, .testi-grid, .pricing-grid { grid-template-columns: 1fr; }
+  .features-header { grid-template-columns: 1fr; }
+  .features-header p { text-align: left; margin-top: 16px; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+  .how, .match-demo, .features, .events, .testimonials, .pricing, .cta-banner { padding: 80px 20px; }
+  .footer-inner { padding: 40px 20px; }
+  footer { padding: 48px 20px 32px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo"><span>🎸</span>现场同好</a>
+  <ul class="nav-links">
+    <li><a href="#how">如何使用</a></li>
+    <li><a href="#features">功能</a></li>
+    <li><a href="#events">演出</a></li>
+    <li><a href="#pricing">会员</a></li>
+    <li><a href="#" class="nav-cta" onclick="openModal()">立即加入</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-left">
+    <p class="hero-eyebrow">// 独立音乐圈层社交</p>
+    <h1 class="hero-title">
+      找到<br>
+      <span class="accent">你的</span><br>
+      <span class="thin">同频人</span>
+    </h1>
+    <p class="hero-sub">不是颜值匹配，不是算法推送。<br>
+      是真实看过同一场演出、爱过同一张黑胶的人。</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openModal()"><span>立即注册 →</span></button>
+      <button class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">了解更多</button>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <span class="stat-num" data-count="80">0</span>
+        <span class="stat-label">万+ 独立音乐爱好者</span>
+      </div>
+      <div>
+        <span class="stat-num" data-count="3000">0</span>
+        <span class="stat-label">+ 已成功配对</span>
+      </div>
+      <div>
+        <span class="stat-num" data-count="200">0</span>
+        <span class="stat-label">+ 合作 livehouse</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="vinyl-container">
+      <div class="vinyl">
+        <div class="vinyl-label">
+          <span class="vinyl-label-text">现场<br>同好</span>
+          <div class="vinyl-center-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="floating-cards">
+      <div class="fcard fcard-1">
+        <div class="fcard-name">// MATCH FOUND</div>
+        <div class="fcard-match">陈思远 · 92% 同频</div>
+        <div class="fcard-tags">
+          <span class="ftag">后摇</span>
+          <span class="ftag">shoegaze</span>
+          <span class="ftag">愚公移山</span>
+        </div>
+      </div>
+      <div class="fcard fcard-2">
+        <div class="fcard-name">// UPCOMING EVENT</div>
+        <div class="fcard-match">惘闻 × 回声乐队</div>
+        <div class="fcard-tags">
+          <span class="ftag">05/18</span>
+          <span class="ftag">育音堂</span>
+          <span class="ftag">3人同去</span>
+        </div>
+      </div>
+      <div class="fcard fcard-3">
+        <div class="fcard-name">// NEW MESSAGE</div>
+        <div class="fcard-match">「你也去了那场Carsick Cars？」</div>
+      </div>
+    </div>
+    <div class="waveform" id="waveform"></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">独立音乐</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">LIVEHOUSE</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">黑胶唱片</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">后摇 · SHOEGAZE · MATH ROCK</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">找到同频的人</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">音乐品味认同</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">兵马司 · 摩登天空</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">INDEPENDENT MUSIC</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">独立音乐</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">LIVEHOUSE</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">黑胶唱片</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">后摇 · SHOEGAZE · MATH ROCK</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">找到同频的人</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">音乐品味认同</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">兵马司 · 摩登天空</span><span class="ticker-dot">◆</span>
+    <span class="ticker-item">INDEPENDENT MUSIC</span><span class="ticker-dot">◆</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-grid">
+    <div class="how-header">
+      <p class="section-label">// 使用流程</p>
+      <h2 class="section-title">三步，<br>找到你的<br>现场同好</h2>
+      <p>我们不相信颜值匹配。<br>我们相信，共同站在同一片灯光下的人，才是真正同频的人。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <span class="step-icon">🎟️</span>
+          <h3>认证你的音乐身份</h3>
+          <p>上传演出票根或黑胶照片，导入网易云 / Spotify 歌单，完成「音乐品味测验」。你的圈层身份，由真实经历说话。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div>
+          <span class="step-icon">🎯</span>
+          <h3>系统计算同频评分</h3>
+          <p>基于歌单重合度、共同看过的演出、厂牌偏好向量，智能计算你与他人的同频分数，优先展示真正匹配的人。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div>
+          <span class="step-icon">🏟️</span>
+          <h3>从线上连接到线下现场</h3>
+          <p>发起「演出搭子」，共同报名 livehouse；用 AI 生成的音乐话题破冰，让共同回忆代替尬聊，把线上认识变成线下的真实连接。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MATCH DEMO -->
+<section class="match-demo">
+  <div class="match-demo-inner">
+    <p class="section-label">// 同频匹配演示</p>
+    <h2 class="section-title">这就是<span class="accent">真正的</span><br>音乐匹配</h2>
+    <p class="match-sub">不是「都喜欢音乐」，而是「我们都在那个雨夜站在愚公移山的舞台前」</p>
+    <div class="profiles-container">
+      <!-- Profile A -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar avatar-a">🎸</div>
+          <div>
+            <div class="profile-name">林小野</div>
+            <div class="profile-meta">北京 · 24岁 · 后摇 / Math Rock</div>
+          </div>
+        </div>
+        <div class="profile-section-title">// 偏好风格</div>
+        <div class="tag-list">
+          <span class="tag shared">后摇</span>
+          <span class="tag shared">Shoegaze</span>
+          <span class="tag">Math Rock</span>
+          <span class="tag shared">Post-Punk</span>
+          <span class="tag">Noise</span>
+        </div>
+        <div class="profile-section-title">// 看过的演出</div>
+        <div class="show-list">
+          <div class="show-item shared">
+            <span class="show-name">惘闻「长途」巡演</span>
+            <span class="show-venue">愚公移山</span>
+          </div>
+          <div class="show-item shared">
+            <span class="show-name">Carsick Cars</span>
+            <span class="show-venue">MAO Livehouse</span>
+          </div>
+          <div class="show-item">
+            <span class="show-name">白皮书巡演</span>
+            <span class="show-venue">疆进酒</span>
+          </div>
+        </div>
+      </div>
+      <!-- Match Center -->
+      <div class="match-center">
+        <div class="match-ring">
+          <span class="match-pct" id="matchPct">0%</span>
+          <span class="match-label-sm">同频指数</span>
+        </div>
+        <div class="match-reasons">
+          <div class="reason">共同演出 × 3场</div>
+          <div class="reason">歌单重合 68%</div>
+          <div class="reason">同爱后摇 / Shoegaze</div>
+          <div class="reason">同城 · 北京</div>
+        </div>
+      </div>
+      <!-- Profile B -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar avatar-b">🎵</div>
+          <div>
+            <div class="profile-name">陈思远</div>
+            <div class="profile-meta">北京 · 26岁 · Shoegaze / Post-Punk</div>
+          </div>
+        </div>
+        <div class="profile-section-title">// 偏好风格</div>
+        <div class="tag-list">
+          <span class="tag shared">后摇</span>
+          <span class="tag shared">Shoegaze</span>
+          <span class="tag">Dream Pop</span>
+          <span class="tag shared">Post-Punk</span>
+          <span class="tag">Black Metal</span>
+        </div>
+        <div class="profile-section-title">// 看过的演出</div>
+        <div class="show-list">
+          <div class="show-item shared">
+            <span class="show-name">惘闻「长途」巡演</span>
+            <span class="show-venue">愚公移山</span>
+          </div>
+          <div class="show-item shared">
+            <span class="show-name">Carsick Cars</span>
+            <span class="show-venue">MAO Livehouse</span>
+          </div>
+          <div class="show-item">
+            <span class="show-name">Re-TROS</span>
+            <span class="show-venue">育音堂</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="features-header">
+      <div>
+        <p class="section-label">// 核心功能</p>
+        <h2 class="section-title">为独立音乐<br>爱好者打造</h2>
+      </div>
+      <p>每一个功能，都围绕「真实的音乐认同」设计，而不是让你刷脸、刷简介。</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🎟️</span>
+        <h3 class="feature-title">票根认证系统</h3>
+        <p class="feature-desc">AI 识别真实演出票根，把你的现场经历变成可信赖的身份标识，只有真正到场的人才能加入。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h3 class="feature-title">多维同频算法</h3>
+        <p class="feature-desc">歌单重合 + 共同演出 + 厂牌偏好，四维加权计算，比简单「都喜欢摇滚」精准 10 倍的匹配。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏟️</span>
+        <h3 class="feature-title">演出搭子模式</h3>
+        <p class="feature-desc">整合全国 livehouse 演出日历，一键发起「找人同去」，把线上匹配直接转化为线下相遇的现场。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💿</span>
+        <h3 class="feature-title">黑胶交换墙</h3>
+        <p class="feature-desc">建立你的黑胶库，发起「我有 / 我想要」交换请求，在唱片店或线下活动中完成 P2P 交流。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🤖</span>
+        <h3 class="feature-title">AI 音乐破冰</h3>
+        <p class="feature-desc">自动生成「你们都听过 X」的定制化开场白，用共同音乐记忆代替「在吗」，让每一次开口都有话题。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛡️</span>
+        <h3 class="feature-title">安全线下工具</h3>
+        <p class="feature-desc">行程报备、好友通知、AA 收款、双向评价体系——让线下见面从陌生人变成安心的同好相遇。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS -->
+<section class="events" id="events">
+  <div class="events-inner">
+    <div class="events-header">
+      <p class="section-label">// 即将开演</p>
+      <h2 class="section-title">找到同好，<br>一起去现场</h2>
+      <p>全国 200+ 合作 livehouse 演出实时更新，看看有没有人想和你一起去</p>
+    </div>
+    <div class="events-scroll" id="eventsScroll">
+      <div class="event-card">
+        <div class="event-img ei-1">🎸</div>
+        <div class="event-body">
+          <div class="event-date">05月18日 · 北京</div>
+          <div class="event-name">惘闻 × 回声乐队</div>
+          <div class="event-venue">愚公移山 · 后海</div>
+          <div class="event-footer">
+            <span class="event-going">12人同好想去</span>
+            <a href="#" class="event-join" onclick="openModal()">找搭子 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-img ei-2">🎵</div>
+        <div class="event-body">
+          <div class="event-date">05月22日 · 上海</div>
+          <div class="event-name">Carsick Cars 专场</div>
+          <div class="event-venue">育音堂 · 长宁</div>
+          <div class="event-footer">
+            <span class="event-going">8人同好想去</span>
+            <a href="#" class="event-join" onclick="openModal()">找搭子 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-img ei-3">🥁</div>
+        <div class="event-body">
+          <div class="event-date">05月25日 · 成都</div>
+          <div class="event-name">草台回声巡演</div>
+          <div class="event-venue">方所 · 太古里</div>
+          <div class="event-footer">
+            <span class="event-going">6人同好想去</span>
+            <a href="#" class="event-join" onclick="openModal()">找搭子 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-img ei-4">🎼</div>
+        <div class="event-body">
+          <div class="event-date">06月01日 · 广州</div>
+          <div class="event-name">Re-TROS 南方巡演</div>
+          <div class="event-venue">TU凸空间</div>
+          <div class="event-footer">
+            <span class="event-going">15人同好想去</span>
+            <a href="#" class="event-join" onclick="openModal()">找搭子 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-img ei-5">🎤</div>
+        <div class="event-body">
+          <div class="event-date">06月08日 · 北京</div>
+          <div class="event-name">黑胶分享沙龙 Vol.12</div>
+          <div class="event-venue">现场同好 × 兵马司唱片</div>
+          <div class="event-footer">
+            <span class="event-going">20人名额已报名11</span>
+            <a href="#" class="event-join" onclick="openModal()">立即报名 →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-inner">
+    <p class="section-label">// 真实故事</p>
+    <h2 class="section-title">他们在现场<br>找到了<span class="accent">同好</span></h2>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <p class="testi-quote">配到一个同频分 94% 的人，才聊了三句话发现我们都在同一场惘闻的演出哭过。第二周就一起去了 Carsick Cars。</p>
+        <div class="testi-author">
+          <div class="testi-avatar ta-1">🎸</div>
+          <div>
+            <div class="testi-name">林小野</div>
+            <div class="testi-meta">北京 · 后摇爱好者</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-quote">以前用 Soul 配了很多人，聊音乐全是「我喜欢周杰伦你呢」。来这里一条信息都还没发，就知道我们是同类人了。</p>
+        <div class="testi-author">
+          <div class="testi-avatar ta-2">💿</div>
+          <div>
+            <div class="testi-name">沈云舒</div>
+            <div class="testi-meta">上海 · 黑胶收藏者</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-quote">通过黑胶交换墙认识了现在的男朋友，他有一张我找了三年的 Mogwai 首版黑胶。这平台真的懂我。</p>
+        <div class="testi-author">
+          <div class="testi-avatar ta-3">🎵</div>
+          <div>
+            <div class="testi-name">王晓彤</div>
+            <div class="testi-meta">成都 · Shoegaze 迷</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <p class="section-label">// 会员方案</p>
+    <h2 class="section-title">找到同好，值多少</h2>
+    <p class="pricing-sub">基础功能永久免费，会员解锁更精准的匹配与更多现场机会</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-name">探索版</div>
+        <div class="price-amount">¥0</div>
+        <div class="price-period">永久免费</div>
+        <ul class="price-features">
+          <li>基础资料与歌单展示</li>
+          <li>每日 5 次匹配推荐</li>
+          <li>浏览演出日历</li>
+          <li>发起 / 参与公开活动</li>
+        </ul>
+        <button class="price-btn price-btn-ghost" onclick="openModal()">免费注册</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">最受欢迎</div>
+        <div class="price-name">同好会员</div>
+        <div class="price-amount">¥29</div>
+        <div class="price-period">/ 月 · 季卡 ¥79</div>
+        <ul class="price-features">
+          <li>无限次匹配推荐</li>
+          <li>查看谁看过你的资料</li>
+          <li>演出搭子优先推荐</li>
+          <li>AI 破冰话题生成</li>
+          <li>专属同好认证徽章</li>
+          <li>活动优先报名资格</li>
+        </ul>
+        <button class="price-btn price-btn-solid" onclick="openModal()">立即开通</button>
+      </div>
+      <div class="price-card">
+        <div class="price-name">年卡会员</div>
+        <div class="price-amount">¥199</div>
+        <div class="price-period">/ 年 · 省 ¥149</div>
+        <ul class="price-features">
+          <li>全部会员权益</li>
+          <li>专属黑胶搭子推荐</li>
+          <li>线下沙龙优先席位</li>
+          <li>兵马司专属折扣码</li>
+        </ul>
+        <button class="price-btn price-btn-ghost" onclick="openModal()">选择年卡</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <h2>好的音乐，找到好的人</h2>
+  <p>现在注册，获得 30 天免费会员体验</p>
+  <button class="btn-white" onclick="openModal()">立即加入现场同好 →</button>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo"><span>🎸</span>现场同好</a>
+      <p>独立音乐圈层精准社交平台。不是颜值配对，是真实的音乐认同。</p>
+    </div>
+    <div class="footer-col">
+      <h4>产品</h4>
+      <a href="#">功能介绍</a>
+      <a href="#">演出搭子</a>
+      <a href="#">黑胶交换</a>
+      <a href="#">会员方案</a>
+    </div>
+    <div class="footer-col">
+      <h4>关于</h4>
+      <a href="#">关于我们</a>
+      <a href="#">创业故事</a>
+      <a href="#">合作 livehouse</a>
+      <a href="#">媒体报道</a>
+    </div>
+    <div class="footer-col">
+      <h4>帮助</h4>
+      <a href="#">用户协议</a>
+      <a href="#">隐私政策</a>
+      <a href="#">安全指南</a>
+      <a href="#">联系我们</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 现场同好 · <span>让共鸣成为连接</span></span>
+    <span>ICP备XXXXXXXX号</span>
+  </div>
+</footer>
+
+<!-- REGISTRATION MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <p class="modal-eyebrow">// 加入现场同好</p>
+    <h2 class="modal-title">找到你的同频人</h2>
+    <div class="form-group">
+      <label>昵称</label>
+      <input type="text" placeholder="你在圈子里的名字">
+    </div>
+    <div class="form-group">
+      <label>手机号</label>
+      <input type="tel" placeholder="用于登录与安全认证">
+    </div>
+    <div class="form-group">
+      <label>所在城市</label>
+      <select>
+        <option>北京</option>
+        <option>上海</option>
+        <option>广州</option>
+        <option>成都</option>
+        <option>武汉</option>
+        <option>杭州</option>
+        <option>南京</option>
+        <option>其他城市</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>音乐偏好（可多选）</label>
+      <div class="form-genres">
+        <button class="genre-chip active" onclick="toggleGenre(this)">后摇</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Shoegaze</button>
+        <button class="genre-chip active" onclick="toggleGenre(this)">Math Rock</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Post-Punk</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Noise Rock</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Dream Pop</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Indie Folk</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Experimental</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Black Metal</button>
+        <button class="genre-chip" onclick="toggleGenre(this)">Jazz Fusion</button>
+      </div>
+    </div>
+    <button class="form-submit" onclick="handleSubmit()">下一步：上传票根认证 →</button>
+    <p class="modal-footer">注册即表示你同意我们的用户协议与隐私政策</p>
+  </div>
+</div>
+
+<script>
+// ── CURSOR ───────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+(function animRing() {
+  rx += (mx - rx) * 0.15;
+  ry += (my - ry) * 0.15;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+// ── NAVBAR ───────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ── WAVEFORM ─────────────────────────────────────────────
+const wf = document.getElementById('waveform');
+for (let i = 0; i < 48; i++) {
+  const b = document.createElement('div');
+  b.className = 'wave-bar';
+  const h = Math.random() * 40 + 4;
+  b.style.height = h + 'px';
+  b.style.animationDelay = (Math.random() * 1.2) + 's';
+  b.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+  wf.appendChild(b);
+}
+
+// ── SCROLL ANIMATIONS ────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.step, .feature-card').forEach(el => observer.observe(el));
+
+// ── MATCH COUNTER ANIMATION ──────────────────────────────
+const matchObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    let n = 0;
+    const el = document.getElementById('matchPct');
+    const t = setInterval(() => {
+      n = Math.min(n + 2, 92);
+      el.textContent = n + '%';
+      if (n >= 92) clearInterval(t);
+    }, 20);
+    matchObs.disconnect();
+  }
+}, { threshold: 0.5 });
+const matchSection = document.querySelector('.match-demo');
+if (matchSection) matchObs.observe(matchSection);
+
+// ── STAT COUNTERS ────────────────────────────────────────
+const statObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = +e.target.dataset.count;
+      let n = 0; const step = target / 60;
+      const t = setInterval(() => {
+        n = Math.min(n + step, target);
+        e.target.textContent = Math.floor(n) + (e.target.dataset.count >= 100 ? '+' : '万+');
+        if (n >= target) { clearInterval(t); statObs.unobserve(e.target); }
+      }, 20);
+    }
+  });
+}, { threshold: 0.8 });
+document.querySelectorAll('[data-count]').forEach(el => statObs.observe(el));
+
+// Fix stat labels
+document.querySelectorAll('[data-count]').forEach(el => {
+  const orig = el.textContent;
+});
+// Correct initial display
+document.querySelectorAll('.stat-num').forEach(el => {
+  const cnt = el.dataset.count;
+  if (cnt < 100) el.textContent = '0万+';
+  else el.textContent = '0+';
+});
+
+// ── EVENTS DRAG SCROLL ───────────────────────────────────
+const scroll = document.getElementById('eventsScroll');
+let isDown = false, startX, scrollLeft;
+scroll.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - scroll.offsetLeft; scrollLeft = scroll.scrollLeft; scroll.style.cursor = 'grabbing'; });
+scroll.addEventListener('mouseleave', () => { isDown = false; scroll.style.cursor = 'grab'; });
+scroll.addEventListener('mouseup', () => { isDown = false; scroll.style.cursor = 'grab'; });
+scroll.addEventListener('mousemove', e => { if (!isDown) return; e.preventDefault(); const x = e.pageX - scroll.offsetLeft; scroll.scrollLeft = scrollLeft - (x - startX) * 1.5; });
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal() { document.getElementById('modalOverlay').classList.add('active'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+function toggleGenre(el) { el.classList.toggle('active'); }
+function handleSubmit() {
+  const modal = document.querySelector('.modal');
+  modal.innerHTML = `
+    <div style="text-align:center;padding:40px 0">
+      <div style="font-size:56px;margin-bottom:24px">🎸</div>
+      <p style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--red);text-transform:uppercase;margin-bottom:16px">// 欢迎加入</p>
+      <h2 style="font-family:'Noto Serif SC',serif;font-size:26px;font-weight:900;color:var(--ink);margin-bottom:16px">你已加入现场同好候补名单！</h2>
+      <p style="font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:32px">我们正在内测中。上传你的演出票根可以<br>优先获得内测资格，你会是第一批找到同好的人。</p>
+      <button onclick="closeModal()" style="background:var(--red);color:#fff;border:none;padding:14px 40px;font-size:14px;font-family:'Noto Sans SC',sans-serif;cursor:none;width:100%">好的，期待内测通知 ✓</button>
+    </div>
+  `;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
